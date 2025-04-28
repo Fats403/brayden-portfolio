@@ -39,8 +39,8 @@ const CONFIG = {
     introText: {
       name: "BRAYDEN BLACKWELL",
       title: "FRONTEND DEVELOPER & DESIGNER",
-      baseScale: 0.75,
-      maxScaleIncrease: 0.2,
+      baseScale: 0.6,
+      maxScaleIncrease: 0.4,
       baseOpacity: 0.1,
       titleVisibilityThreshold: 0.7,
     },
