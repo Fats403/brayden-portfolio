@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect, useMemo } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { Line, SpotLight, PerspectiveCamera } from "@react-three/drei";
 import { motion, useScroll } from "framer-motion";
 import { Group } from "three";
@@ -61,10 +61,6 @@ const CONFIG = {
         minBoxShadowBlur: 20,
         maxSpread: 20,
         minSpread: 10,
-      },
-      sharpCircle: {
-        scale: 9.8,
-        opacity: 0.9,
       },
     },
     vignette: {
@@ -303,7 +299,7 @@ const ActionButtons = ({ scrollValue, config }) => {
 
 // Circle reveal component
 const CircleReveal = ({ scrollValue, config }) => {
-  const { startThreshold, transitionSpeed, blurredCircle, sharpCircle } = config;
+  const { startThreshold, transitionSpeed, blurredCircle } = config;
   const normalizedCircleProgress = Math.max(0, Math.min(1, (scrollValue - startThreshold) * transitionSpeed));
   const isActive = scrollValue > startThreshold;
   
@@ -328,22 +324,6 @@ const CircleReveal = ({ scrollValue, config }) => {
         }}
         transition={{ duration: 0.1 }}
       />
-      
-      {/* Sharper white circle inside the blurred one for a better core */}
-      <motion.div
-        className="absolute inset-0 bg-white pointer-events-none"
-        initial={{ opacity: 0 }}
-        animate={{ 
-          opacity: isActive ? sharpCircle.opacity : 0,
-          scale: isActive ? normalizedCircleProgress * sharpCircle.scale : 0
-        }}
-        style={{
-          originX: 0.5,
-          originY: 0.5,
-          borderRadius: normalizedCircleProgress < 0.99 ? '50%' : '0',
-        }}
-        transition={{ duration: 0.1 }}
-      />
     </>
   );
 };
@@ -354,7 +334,7 @@ const VignetteOverlay = ({ scrollValue, normalizedCircleProgress, config }) => {
   const circleActive = scrollValue > CONFIG.sections.circleReveal.startThreshold;
   
   return (
-    <div 
+    <div
       className="absolute inset-0 pointer-events-none"
       style={{
         background: gradient,
