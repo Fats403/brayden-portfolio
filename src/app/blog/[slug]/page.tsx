@@ -1,9 +1,12 @@
 import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { getAllPosts, getPostBySlug } from "@/lib/mdx";
-import { Badge } from "@/components/ui/badge";
 import { Prose } from "@/components/prose";
 import { MDXComponents } from "@/components/mdx-components";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
+const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME;
+const TWITTER_HANDLE = process.env.NEXT_PUBLIC_TWITTER_HANDLE;
 
 export async function generateStaticParams() {
   return getAllPosts().map(({ meta }) => ({ slug: meta.slug }));
@@ -12,30 +15,82 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const post = getPostBySlug(params.slug);
+  const { slug } = await params;
+  const post = getPostBySlug(slug);
   if (!post) return {};
+
+  const { meta } = post;
+  const title = meta.title;
+  const description = meta.excerpt;
+  const canonicalPath = `/blog/${slug}`;
+  const canonical = SITE_URL ? `${SITE_URL}${canonicalPath}` : canonicalPath;
+  const keywords: string[] | undefined = Array.isArray(meta.tags)
+    ? meta.tags
+    : undefined;
+
+  const publishedTime = meta.date
+    ? new Date(meta.date).toISOString()
+    : undefined;
+  const modifiedTime = publishedTime;
+
   return {
-    title: post.meta.title,
-    description: post.meta.excerpt,
+    metadataBase: SITE_URL ? new URL(SITE_URL) : undefined,
+    title,
+    description,
+    alternates: { canonical },
+    keywords,
+    robots: {
+      index: true,
+      follow: true,
+      nocache: false,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
+    },
+    openGraph: {
+      type: "article",
+      url: canonical,
+      siteName: SITE_NAME,
+      title,
+      description,
+      publishedTime,
+      modifiedTime,
+      tags: keywords,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      creator: TWITTER_HANDLE,
+    },
   };
 }
 
-export default function BlogPostPage({ params }: { params: { slug: string } }) {
+export default async function BlogPostPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   let post;
+  const { slug } = await params;
   try {
-    post = getPostBySlug(params.slug);
+    post = getPostBySlug(slug);
   } catch {
     notFound();
   }
 
-  const { meta, content } = post!;
+  const { meta, content } = post;
 
   return (
-    <main className="mt-5 relative flex min-h-screen flex-col items-center">
+    <main className="mt-5 relative min-h-screen">
       <div className="page-enter">
-        <article className="space-y-6">
+        <article className="space-y-6 w-full">
           <div className="space-y-3">
             <h1
               className="text-3xl font-semibold leading-tight tracking-tight md:text-4xl"
@@ -44,7 +99,7 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
               {meta.title}
             </h1>
 
-            <div className="space-y-1">
+            <div className="space-y-4">
               {meta.excerpt && (
                 <p className="text-muted-foreground">{meta.excerpt}</p>
               )}

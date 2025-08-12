@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils"; // if you have a cn helper; otherwise inline className joins
+import { cn } from "@/lib/utils";
 
 type ProseProps = React.HTMLAttributes<HTMLDivElement>;
 
@@ -6,8 +6,10 @@ export function Prose({ className, ...props }: ProseProps) {
   return (
     <div
       className={cn(
+        // responsive container
+        "w-full",
         // base text
-        "leading-7 text-foreground/90",
+        "max-w-[42rem] leading-7 text-foreground/90",
         // headings
         "[&>h1]:scroll-m-20 [&>h1]:text-3xl [&>h1]:font-semibold [&>h1]:tracking-tight md:[&>h1]:text-4xl",
         "[&>h2]:mt-10 [&>h2]:scroll-m-20 [&>h2]:border-b [&>h2]:pb-2 [&>h2]:text-xl [&>h2]:font-semibold [&>h2]:tracking-tight [&>h2]:border-border",
@@ -15,25 +17,25 @@ export function Prose({ className, ...props }: ProseProps) {
         // paragraphs and small text
         "[&>p]:mt-4 [&>p]:text-foreground",
         "[&>small]:text-xs [&>small]:leading-none",
-        // links
-        "[&>a]:text-primary [&>a]:underline-offset-2 hover:[&>a]:underline",
+        // links (descendants)
+        "[&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2",
         // lists
         "[&>ul]:my-4 [&>ul]:ml-6 [&>ul]:list-disc",
         "[&>ol]:my-4 [&>ol]:ml-6 [&>ol]:list-decimal",
-        "[&>li]:mt-1.5 [&>li>p]:m-0",
-        // code inline
-        "[&>code]:rounded-md [&>code]:border [&>code]:border-border [&>code]:bg-secondary [&>code]:px-1.5 [&>code]:py-0.5 [&>code]:text-sm",
-        // pre/code blocks
-        "[&>pre]:my-6 [&>pre]:overflow-x-auto [&>pre]:rounded-lg [&>pre]:border [&>pre]:border-border [&>pre]:bg-secondary [&>pre]:px-4 [&>pre]:py-3",
-        "[&>pre>code]:text-sm",
-        // blockquote
-        "[&>blockquote]:mt-6 [&>blockquote]:border-l-2 [&>blockquote]:pl-4 [&>blockquote]:text-muted-foreground [&>blockquote]:border-border",
+        "[&_code]:rounded-md [&_code]:border [&_code]:border-border [&_code]:bg-secondary [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-sm [&_code]:font-mono",
+        // pre/code blocks (descendants)
+        "[&_pre]:my-6 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:border [&_pre]:border-border [&_pre]:bg-secondary [&_pre]:px-4 [&_pre]:py-3 [&_pre]:font-mono",
+        "[&_pre>code]:text-sm",
+        // reset inline-code styles inside pre blocks to avoid bleed
+        "[&_pre_code]:m-0 [&_pre_code]:border-0 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:rounded-none",
+        // blockquote (descendants)
+        "[&_blockquote]:mt-6 [&_blockquote]:border-l-2 [&_blockquote]:pl-4 [&_blockquote]:text-muted-foreground [&_blockquote]:border-border",
         // hr
         "[&>hr]:my-10 [&>hr]:border-border",
-        // tables
-        "[&>table]:w-full [&>table]:my-6 [&>table]:text-sm",
-        "[&>table th]:text-left [&>table th]:font-medium [&>table th]:text-foreground [&>table th]:pb-2",
-        "[&>table td]:py-2 [&>table td]:text-muted-foreground",
+        // tables (descendants – covers tables inside lists/blocks)
+        "[&_table]:w-full [&_table]:my-6 [&_table]:text-sm",
+        "[&_table th]:text-left [&_table th]:font-medium [&_table th]:text-foreground [&_table th]:pb-2",
+        "[&_table td]:py-2 [&_table td]:text-muted-foreground",
         className
       )}
       {...props}

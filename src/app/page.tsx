@@ -5,8 +5,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { ExperienceTimeline } from "@/components/experience-timeline";
-import { SkillMatrix } from "@/components/skill-matrix";
 
 type Project = {
   title: string;
@@ -18,28 +16,35 @@ type Project = {
 
 const projects: Project[] = [
   {
-    title: "Creative Commerce",
+    title: "simple-ffmpeg",
     description:
-      "Headless e-commerce storefront with server components and ISR.",
-    tags: ["Next.js", "Tailwind", "Stripe", "Prisma"],
-    href: "#",
-    repo: "#",
+      "Simple lightweight Node.js helper around FFmpeg for quick video composition, transitions, audio mixing, and animated text overlays.",
+    tags: ["FFmpeg", "Open Source"],
+    repo: "https://github.com/fats403/simple-ffmpeg",
   },
   {
-    title: "Realtime Dashboard",
+    title: "Video Venture AI",
     description:
-      "Streaming analytics dashboard with live metrics and smooth transitions.",
-    tags: ["Next.js", "WebSockets", "Charts", "Vercel"],
-    href: "#",
-    repo: "#",
+      "Currentlty in development AI-powered video generation platform that creates videos from text descriptions using multiple different AI models.",
+    tags: [
+      "TypeScript",
+      "React",
+      "Node.js",
+      "Monorepo",
+      "BullMQ",
+      "AI Video",
+      "Docker",
+    ],
+    href: "https://www.videoventure.ai/",
+    repo: "https://github.com/fats403/videoventure",
   },
   {
-    title: "Design System",
+    title: "Word Wurm",
     description:
-      "Minimal component library with tokens, motion primitives, and a11y patterns.",
-    tags: ["TypeScript", "Storybook", "Radix UI"],
-    href: "#",
-    repo: "#",
+      "A simple browser based word game that is based off one of my favorite pop-cap games Book Worm",
+    tags: ["Next.js", "Game", "TailwindCSS"],
+    href: "https://www.wordwurm.com/",
+    repo: "https://github.com/fats403/word-wurm",
   },
 ];
 
@@ -167,21 +172,45 @@ function Experience() {
       role: "Senior Software Engineer",
       org: "Enviros",
       time: "06/2024 — 04/2025 • Calgary, AB",
-      desc: "Led full‑stack initiatives across frontend UX and backend APIs; delivered secure, reliable features at pace.",
+      desc: "Led full-stack initiatives across frontend UX and backend APIs; delivered secure, reliable features at pace.",
     },
     {
       role: "Senior Software Engineer",
       org: "DataTrail Corp.",
       time: "02/2021 — Current • Calgary, AB",
-      desc: "Owning end‑to‑end delivery: design systems, scalable APIs, data pipelines, and cloud infrastructure.",
+      desc: "Owning end-to-end delivery: design systems, scalable APIs, data pipelines, and cloud infrastructure.",
     },
   ];
   return (
     <div className="space-y-5">
       <h2 className="text-xl font-semibold">Experience</h2>
-      {/* Timeline */}
-      {/* @ts-ignore - after you create the component */}
-      <ExperienceTimeline items={items} />
+      <div className="relative">
+        {/* Axis */}
+        <div
+          className="absolute left-[10px] top-0 bottom-0 w-px bg-border"
+          aria-hidden
+        />
+        <ul className="space-y-6">
+          {items.map((i) => (
+            <li key={`${i.org}-${i.role}`} className="pt-4 relative pl-8">
+              {/* Dot */}
+              <div className="absolute left-[6px] top-1.5 h-2.5 w-2.5 rounded-full bg-foreground" />
+              <div className="mt-4 flex flex-col gap-2">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="font-medium">
+                    {i.role} •{" "}
+                    <span className="text-muted-foreground">{i.org}</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground whitespace-nowrap">
+                    {i.time}
+                  </div>
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground">{i.desc}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
@@ -256,6 +285,12 @@ function Projects() {
 }
 
 function Skills() {
+  const levelClass = {
+    base: "bg-secondary text-foreground border border-border/80",
+    plus: "bg-secondary text-foreground border border-border/60",
+    pro: "bg-secondary text-foreground border border-border/40 shadow-[inset_0_0_0_1px_var(--color-border)]",
+  };
+
   const groups = [
     {
       label: "Frontend",
@@ -339,8 +374,26 @@ function Skills() {
   return (
     <div className="space-y-5">
       <h2 className="text-xl font-semibold">Skills</h2>
-      {/* @ts-ignore - after you create the component */}
-      <SkillMatrix groups={groups} />
+      <div className="space-y-3">
+        {groups.map((g) => (
+          <div key={g.label}>
+            <div className="mb-2 text-sm font-medium">{g.label}</div>
+            <div className="flex flex-wrap gap-1.5">
+              {g.items.map((s) => (
+                <span
+                  key={s.name}
+                  className={[
+                    "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] leading-5",
+                    levelClass[s.level as keyof typeof levelClass],
+                  ].join(" ")}
+                >
+                  {s.name}
+                </span>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

@@ -1,0 +1,376 @@
+---
+title: "An exploration into FFmpeg drawtext animations"
+excerpt: "How to render and animate text-overlays"
+date: "2025-08-10"
+tags: ["ffmpeg", "video", "drawtext", "subtitles", "animations"]
+---
+
+I’ve been getting deeply into FFmpeg lately. It’s a remarkable open‑source toolkit and a cornerstone of video/audio processing (consider [donating](https://ffmpeg.org/donations.html) if you can!). Clear guides on text animation are hard to find, so this post aims to walk through the essentials of `drawtext`from timing and positioning to simple animations with scalign and fades and touches on some of the math and the underlying concepts behind them.
+
+FFmpeg provides a few different ways to handle rendering text which include
+
+- SubRip/ASS subtitles (`-vf subtitles`, or `libass`) which are very powerful styling/positioning, rich events, great for full subtitle workflows.
+- Image overlays (pre‑rendered PNG/SVG) predictable, but not dynamic.
+- The `drawtext` filter which can programmaticly render text inside FFmpeg’s filter graph.
+
+In this post we focus on `drawtext`. It’s built‑in, expressive, and ideal when you want to:
+
+- Render dynamic text directly in FFmpeg (no external subtitle file)
+- Precisely control timing and position per overlay
+- Animate properties (opacity, size, x, y, etc.) using FFmpeg’s expression language
+
+We’ll go from rendering basics and then we'll add some simple animations (fade‑in/out, pop, pop‑bounce), explain the math behind the expressions, and show how to chain multiple text overlays.
+
+## Prerequisites
+
+- FFmpeg with `libfreetype` and `fontconfig` (for fonts)
+- A test video: `input.mp4` you can downlooad the video I'll be using [here](https://www.braydenblackwell.com/assets/gwoc.mp4)
+
+A few things to note before we begin...
+
+### Fonts and environments
+
+- System fonts via `font=Sans` require `fontconfig` and an installed font.
+- Containers (Alpine, minimal images): install a TTF and use `fontfile=/path.ttf`.
+- Paths with spaces need quoting: `fontfile='/path/with space/Font.ttf'`.
+- Ensure your FFmpeg has `libfreetype` and `fontconfig`.
+
+### Escaping and quoting
+
+- Colons `:` inside `text=` must be escaped: `\:`
+- Backslashes `\` and single quotes `'` inside `text` must be escaped.
+- Commas in expressions must be escaped `\,` because filter options are colon‑separated and commas delimit function arguments.
+
+## How drawtext works
+
+`drawtext` draws a string on every video frame, evaluating parameters each frame:
+
+- Position (`x`, `y`)
+- Font (`font` or `fontfile`)
+- Size (`fontsize`)
+- Color (`fontcolor`)
+- Optional effects (shadow, outline, background, alpha)
+
+Example (top‑left):
+
+```bash
+ffmpeg -y -i input.mp4 \
+-vf "drawtext=text='Hello World':font=Sans:fontsize=48:fontcolor=black:x=50:y=100" \
+-c:a copy output.mp4
+```
+
+<Video
+  src="https://7llpl63xkl8jovgt.public.blob.vercel-storage.com/ffmpeg-text-rendering/output-video-1.mp4"
+  caption="A basic example of rendering text over a video"
+/>
+
+Key ideas:
+
+- Coordinates are pixels from the top‑left.
+- You can use expressions referencing frame size (`w`, `h`) and text size (`text_w`, `text_h`).
+- Parameters are re‑evaluated per frame, so they can be animated (e.g., make `x` or `alpha` depend on time).
+
+### Centering text
+
+Use `text_w`/`text_h`:
+
+```bash
+ffmpeg -y -i input.mp4 \
+-vf "drawtext=text='Centered':font=Sans:fontsize=64:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2" \
+-c:a copy output.mp4
+```
+
+Here's an example of how you could offset `200px` from the center on the `y` axis:
+
+```txt
+:x=(w-text_w)/2+0 :y=(h-text_h)/2-200
+```
+
+## Timing with '**enable**' and time '**t**'
+
+To control when text appears, gate it with `enable='between(t,start,end)'`:
+
+```bash
+ffmpeg -y -i input.mp4 \
+-vf "drawtext=text='This appears at 1s and gone at 4s':font=Sans:fontsize=48:fontcolor=white:
+x=(w-text_w)/2:y=(h-text_h)/2:enable='between(t,1,4)'" \
+-c:a copy output.mp4
+```
+
+<Video
+  src="https://7llpl63xkl8jovgt.public.blob.vercel-storage.com/ffmpeg-text-rendering/output-video-2.mp4"
+  caption="An example of rendering text between specific timeframes"
+/>
+
+- `t` is presentation time (seconds).
+- `between(t,1,4)` → visible in [1.0, 4.0).
+
+## Expressions 101 (we’ll use this for animation)
+
+FFmpeg expressions use functions like `if(cond, A, B)` and `lt(a,b)`.
+
+Lets take a look at this generic form:
+
+```txt
+alpha=if(lt(t,t0),val_before,if(lt(t,t1),val_between,val_after))
+```
+
+Lets break down this down peice by peice
+
+- `alpha` = the output value
+- `t` = current time
+- `t0` and `t1` = two time thresholds (where `t0 < t1`)
+- `lt(a,b)` = "less than" function (returns true if `a < b`)
+- `if(condition, value_if_true, value_if_false)` = conditional statement
+
+We’ll combine these building blocks to animate alpha (opacity) and fontsize (scale).
+
+## Fade‑in: animating opacity
+
+Goal: fade in over `d` seconds starting at `t0`.
+
+### Math:
+
+- Before `t0`: alpha = 0
+- From `t0` to `t0 + d`: alpha = (t - t0) / d
+- After `t0 + d`: alpha = 1
+
+Command:
+
+```bash
+ffmpeg -y -i input.mp4 \
+-vf "drawtext=text='This text fades in!':font=Sans:fontsize=64:fontcolor=white:
+x=(w-text_w)/2:y=(h-text_h)/2:
+alpha=if(lt(t\,1.0)\,0\,if(lt(t\,1.5)\,(t-1.0)/0.5\,1)):
+enable='between(t,1.0,5.0)'" \
+-c:a copy output.mp4
+```
+
+<Video
+  src="https://7llpl63xkl8jovgt.public.blob.vercel-storage.com/ffmpeg-text-rendering/output-video-3.mp4"
+  caption="Fade-in over 0.5s starting at 1.0s; visible until 5.0s"
+/>
+
+## Fade‑in‑out
+
+Goal: fade in at the start, hold at full opacity, then fade out near the end.
+
+Now all we are going to do is add alinear-deacy phase to here's an example of what this will look like (t0=1.0s, t1=5.0s, d_in=0.3s, d_out=0.3s):
+
+- 0.0–1.0s: hidden
+- 1.0–1.3s: fade in
+- 1.3-4.7s: fully visible
+- 4.7–5.0s: fade out
+- 5.0s+: hidden
+
+### Math
+
+- In: (t - t0) / d_in for t ∈ [t0, t0 + d_in)
+- Hold: alpha = 1 for t ∈ [t0 + d_in, t1 - d_out)
+- Out: (t1 - t) / d_out for t ∈ [t1 - d_out, t1)
+- Else: 0
+
+Command:
+
+```bash
+ffmpeg -y -i input.mp4 \
+-vf "drawtext=text='Fade in... and then out!':font=Sans:fontsize=64:fontcolor=white:
+x=(w-text_w)/2:y=(h-text_h)/2:
+alpha=if(lt(t\,1.0)\,0\,if(lt(t\,1.3)\,(t-1.0)/0.3\,if(lt(t\,4.7)\,1\,if(lt(t\,5.0)\,((5.0-t)/0.3)\,0)))):
+enable='between(t,1.0,5.0)'" \
+-c:a copy output.mp4
+```
+
+<Video
+  src="https://7llpl63xkl8jovgt.public.blob.vercel-storage.com/ffmpeg-text-rendering/output-video-4.mp4"
+  caption="Fade-in over 0.3s starting at 1.0s; visible until 4.7s, fade-out over 0.3s"
+/>
+
+## Easing equations
+
+Okay before we get into some of the more complicated text animations lets first go over some details about how easing works and why they are good to use when working with animations.
+
+Easing maps normalized time `u` from 0 to 1 into a progress value `y` from 0 to 1. Instead of changing linearly, eases make motion feel more natural (slow in, slow out, or both).
+
+I've created an interactive demo for some of the most common eases that are used in animation to make it easier to visualize.
+
+<EasingPlayground />
+
+## Pop (scale‑in) via fontsize
+
+Let’s make the text “pop” in, start a bit smaller and quickly grow to its final size. We’ll use a simple ease‑out curve that looks great on almost anything.
+
+### What we’re doing
+
+- Normalize time inside the intro window: `u = clamp((t - t0)/d, 0, 1)`
+- Use a simple ease‑out: `y = sin(π/2 · u)`
+- Map progress to size: `fontsize = S * (base + gain · y)` where `base + gain = 1`
+  - In this example, `base = 0.7`, `gain = 0.3` so we ramp from 70% → 100%
+- Keep it visually centered with `x=(w-text_w)/2:y=(h-text_h)/2` as the text box grows
+
+### Why this ease?
+
+- Sine‑out is smooth: quick at the start, gentle as it settles.
+- You can swap in other eases, (quad, cubic, etc.) the normalization + mapping stays the same.
+
+### Math
+
+- `u = clamp((t - t0)/d, 0, 1)`
+- `y = sin(π/2 · u)`
+- `fontsize = S * (0.7 + 0.3 · y)`
+
+Command:
+
+```bash
+ffmpeg -y -i input.mp4 \
+-vf "drawtext=text='Pop':font=Sans:
+fontsize=if(lt(t\,1.3)\,48*0.7+48*0.3*sin(PI/2*(t-1.0)/0.3)\,48):
+fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2:
+enable='between(t,1.0,4.0)'" \
+-c:a copy output.mp4
+```
+
+<Video
+  src="https://7llpl63xkl8jovgt.public.blob.vercel-storage.com/ffmpeg-text-rendering/output-video-5.mp4"
+  caption="An example of a simple text scale-in animation"
+/>
+
+Why `text_w/text_h` shift during pop: since `fontsize` is changing, the text box size changes each frame. Centering with `(w-text_w)/2` keeps it visually centered despite size changes.
+
+## Pop‑bounce (overshoot)
+
+Same idea as the pop, but with a little spice added to it. We overshoot the target size by ~10% and settle back to `S`, a classic “bounce” without complex math.
+
+What we’re doing
+
+- Use the same normalization and ease‑out: `u = clamp((t - t0)/d, 0, 1)` and `y = sin(π/2 · u)`
+- Increase the gain during the intro so we peak at ~110%: `fontsize = S * (0.7 + 0.4 · y)`
+- After the intro window, hold at `S`
+
+Tuning
+
+- Want more snap? Shorten `d`.
+- Want a bigger pop? Raise the gain (e.g., `0.45` → ~115%).
+- Want less? Lower the base (start smaller) or gain (end closer to S sooner).
+
+```bash
+ffmpeg -y -i input.mp4 \
+-vf "drawtext=text='Pop Bounce':font=Sans:
+fontsize=if(lt(t\,1.3)\,48*0.7+48*0.4*sin(PI/2*(t-1.0)/0.3)\,48):
+fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2:
+enable='between(t,1.0,4.0)'" \
+-c:a copy output.mp4
+```
+
+<Video
+  src="https://7llpl63xkl8jovgt.public.blob.vercel-storage.com/ffmpeg-text-rendering/output-video-6.mp4"
+  caption="An example of a simple text pop-bouce animation"
+/>
+
+You can craft other eases or multi‑phase curves by nesting `if(...)` segments (e.g., overshoot then decay). The workflow stays the same: normalize time, choose an ease, map `y` into the property you want to animate.
+
+## Multiple overlays, labels, and word‑by‑word
+
+Each `drawtext` consumes a video stream and outputs a video stream. We chain them by naming labels:
+
+- `[0:v]drawtext=... [v1]; [v1]drawtext=... [v2]; ... -map [v2]`
+
+Sequential words (each 0.5s):
+
+```bash
+ffmpeg -y -i input.mp4 -filter_complex "\
+[0:v]drawtext=text='One':font=Sans:fontsize=56:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2:enable='between(t,1.0,1.5)'[v1];\
+[v1]drawtext=text='Two':font=Sans:fontsize=56:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2:enable='between(t,1.5,2.0)'[v2];\
+[v2]drawtext=text='Three':font=Sans:fontsize=56:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2:enable='between(t,2.0,2.5)'[v3];\
+[v3]drawtext=text='Four':font=Sans:fontsize=56:fontcolor=white:x=(w-text_w)/2:y=(h-text_h)/2:enable='between(t,2.5,3.0)'[vout]" \
+-map "[vout]" -map "0:a?" -c:v libx264 -crf 23 -preset medium -c:a copy output.mp4
+```
+
+<Video
+  src="https://7llpl63xkl8jovgt.public.blob.vercel-storage.com/ffmpeg-text-rendering/output-video-7.mp4"
+  caption="An example of sequentially rendering words"
+/>
+
+Add per‑word fade‑in/out by including the `alpha=...` expression in each block.
+
+## Styling: shadows, outlines, backgrounds
+
+- Shadow:
+  ```
+  :shadowcolor=black:shadowx=2:shadowy=2
+  ```
+- Outline:
+  ```
+  :bordercolor=black:borderw=2
+  ```
+- Background box (with opacity):
+  ```
+  :box=1:boxcolor=black@0.5
+  ```
+
+These are additive, you can combine with alpha/fonstize animations.
+
+Cross‑platform tip:
+
+- Prefer wrapping the entire `-vf` in double quotes, then escape commas as shown.
+
+## Performance and complexity
+
+Each `drawtext` is a filter node. Many nodes → complex graphs → slower and can hit filter‑graph limits.
+
+Here are some of the different strategies I've used:
+
+- Merge multiple words into fewer overlays when possible.
+- Pre‑render heavy text sequences and overlay the result.
+- Use multiple passes if your chain becomes very long (render video, then overlay more text on the output).
+- Keep files short while testing; scale to final length once the logic is correct.
+
+## Putting it together — title + subtitle (sequenced)
+
+Let’s finish with a clean title card: the main title fades in, holds, fades out, and the subtitle follows shortly after with the same timing. We’ll keep a soft drop shadow for legibility and center both lines.
+
+```bash
+ffmpeg -y -i input.mp4 -filter_complex "\
+[0:v]drawtext=text='The Great Wall of China':font=Sans:fontsize=72:fontcolor=white:shadowcolor=black:shadowx=2:shadowy=2:\
+  x=(w-text_w)/2:y=(h-text_h)/2-40:\
+  alpha=if(lt(t\,1.0)\,0\,if(lt(t\,1.3)\,(t-1.0)/0.3\,if(lt(t\,3.7)\,1\,if(lt(t\,4.0)\,((4.0-t)/0.3)\,0)))):\
+  enable='between(t,1.0,4.0)'[v1];\
+[v1]drawtext=text='A Wonder of the World':font=Sans:fontsize=40:fontcolor=white:shadowcolor=black:shadowx=2:shadowy=2:\
+  x=(w-text_w)/2:y=(h-text_h)/2+40:\
+  alpha=if(lt(t\,1.4)\,0\,if(lt(t\,1.7)\,(t-1.4)/0.3\,if(lt(t\,4.1)\,1\,if(lt(t\,4.4)\,((4.4-t)/0.3)\,0)))):\
+  enable='between(t,1.4,4.4)'[vout]" \
+-map "[vout]" -map "0:a?" -c:v libx264 -crf 23 -preset medium -c:a copy output.mp4
+```
+
+<Video
+  src="https://7llpl63xkl8jovgt.public.blob.vercel-storage.com/ffmpeg-text-rendering/output-video-8.mp4"
+  caption="A sequenced title and subtitle with staggered fade-in/out"
+/>
+
+Notes
+
+- Title window: [1.0, 4.0) with 0.3s in/out; subtitle is offset by +0.4s → [1.4, 4.4)
+- Both are centered; the title is raised by 40px, the subtitle lowered by 40px to sit as a pair
+- You can adjust the offsets, durations, and sizes to taste; the fade logic stays the same
+
+## Conclusion
+
+You’ve seen how `drawtext`:
+
+- Renders text with flexible positioning (`x`, `y`, `text_w`, `text_h`)
+- Uses `enable='between(t,...)'` for timeline gating
+- Animates properties (opacity with `alpha`, size with `fontsize`) using the `if(...)` expression language
+- Chains multiple overlays with labels for sequences like word‑by‑word titles
+
+These primitives (piecewise alpha, time‑normalized eases, label chaining) scale to many effects:
+
+- Slide‑in/out (animate `x`/`y`)
+- Typewriter (progressively reveal substrings or overlay per‑char frames)
+- Emphasis pulses (periodic size/alpha modulation)
+- Complex sequences (precompute windows, chain filters, or render in passes)
+
+If you later outgrow `drawtext` for typography/layout, look at ASS/`libass`. The timing concepts are the same — you’ll just author events/styling in a subtitle format and let the renderer handle layout.
+
+As a closing note, I’ve had a lot of fun digging into FFmpeg lately. It’s wildly capable, but once you start compositing multiple streams, juggling transitions, keeping background music from stepping on dialog, and making sure fades don’t interfere with other audio... the filter graphs can get hairy fast. I’ve started a tiny Node.js helper to make these workflows simpler and safer: [`simple-ffmpeg`](https://github.com/Fats403/simple-ffmpeg). I’d love your feedback, ideas, or PRs if this space interests you.
+
+Happy rendering! 😀

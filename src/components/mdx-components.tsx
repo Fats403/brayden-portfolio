@@ -1,10 +1,16 @@
 import * as React from "react";
+import CodeBlock from "./mdx/code-block";
+import Link from "./mdx/link";
+import EasingPlayground from "./mdx/easing-playground";
+import Video from "./mdx/video";
 
 export const MDXComponents = {
-  a: (props: React.HTMLAttributes<HTMLAnchorElement>) => (
-    <a {...props} className="text-primary underline-offset-2 hover:underline" />
+  a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
+    <Link {...props} />
   ),
-  hr: (props: React.HTMLAttributes<HTMLHRElement>) => (
-    <hr {...props} className="my-10 border-border" />
+  pre: (props: React.HTMLAttributes<HTMLPreElement>) => (
+    <CodeBlock {...props} />
   ),
+  Video,
+  EasingPlayground,
 };

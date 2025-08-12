@@ -2,24 +2,13 @@
 
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { flushSync } from "react-dom";
 
-function SunMoonIcon({ isDark }: { isDark: boolean }) {
+function SunMoonIcon({ showMoon }: { showMoon: boolean }) {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      width="18"
-      height="18"
-      aria-hidden="true"
-      className="transition-transform duration-300"
-      style={{
-        transform: isDark
-          ? "rotate(45deg) scale(1)"
-          : "rotate(90deg) scale(0.98)",
-      }}
-    >
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+      {/* Sun */}
       <g
-        style={{ opacity: isDark ? 1 : 0 }}
+        style={{ opacity: showMoon ? 0 : 1 }}
         className="transition-opacity duration-200"
         fill="none"
         stroke="currentColor"
@@ -30,12 +19,14 @@ function SunMoonIcon({ isDark }: { isDark: boolean }) {
         <circle cx="12" cy="12" r="4.25" />
         <path d="M12 2.5v2.5M12 19v2.5M21.5 12H19M5 12H2.5M18.364 5.636 16.6 7.4M7.4 16.6 5.636 18.364M18.364 18.364 16.6 16.6M7.4 7.4 5.636 5.636" />
       </g>
+
+      {/* Moon */}
       <g
-        style={{ opacity: isDark ? 0 : 1 }}
+        style={{ opacity: showMoon ? 1 : 0 }}
         className="transition-opacity duration-200"
         fill="currentColor"
       >
-        <path d="M16.5 12.2a5.8 5.8 0 1 1-5.7-7.2 7 7 0 1 0 7 7c0-.28-.02-.56-.06-.83-0.42.12-.86.19-1.24.19z" />
+        <path d="M 15.5 2.8 A 9.2 9.2 0 1 0 21.2 14.7 A 6.8 6.8 0 1 1 15.5 2.8 Z" />
       </g>
     </svg>
   );
@@ -44,19 +35,31 @@ function SunMoonIcon({ isDark }: { isDark: boolean }) {
 export default function ThemeToggle() {
   const { theme, setTheme, systemTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+
   let vtBusy = false;
 
   useEffect(() => setMounted(true), []);
-  if (!mounted) return null;
+
+  // Placeholder to reserve space and avoid layout shift on SSR
+  if (!mounted) {
+    return (
+      <span
+        aria-hidden
+        className="inline-flex h-8 w-8 items-center justify-center rounded-md"
+      />
+    );
+  }
 
   const resolved = theme === "system" ? systemTheme : theme;
   const isDark = resolved === "dark";
   const next = isDark ? "light" : "dark";
+  const showMoon = !isDark;
 
   const onToggle = async () => {
-    const start = (document as any).startViewTransition?.bind(document);
+    const start = document.startViewTransition?.bind(document);
+    const root = document.documentElement;
 
-    if (vtBusy) return; // ignore rapid clicks
+    if (vtBusy) return;
     vtBusy = true;
 
     if (!start) {
@@ -65,34 +68,24 @@ export default function ThemeToggle() {
       return;
     }
 
-    const root = document.documentElement;
-
     const vt = start(() => {
-      flushSync(() => {
-        if (next === "dark") {
-          root.classList.add("dark");
-        } else {
-          root.classList.remove("dark");
-        }
-      });
-
-      // Keep next-themes in sync
+      // Syncronize next-themes
       setTheme(next);
     });
 
-    // Wait for snapshot of new DOM
     await vt?.ready;
 
-    (root as any).animate(
-      {
-        clipPath: [`circle(0px at 50% 50%)`, `circle(150% at 50% 50%)`],
-      },
-      {
-        duration: 520,
-        easing: "ease-in-out",
-        pseudoElement: "::view-transition-new(root)",
-      }
-    );
+    const goingToDark = next === "dark";
+    const keyframes = goingToDark
+      ? { clipPath: ["inset(100% 0 0 0)", "inset(0 0 0 0)"] } // bottom→top
+      : { clipPath: ["inset(0 0 100% 0)", "inset(0 0 0 0)"] }; // top→bottom
+
+    root.animate(keyframes, {
+      duration: 500,
+      easing: "cubic-bezier(.22,.75,.15,1)",
+      pseudoElement: "::view-transition-new(root)",
+      fill: "forwards",
+    });
 
     await vt?.finished.catch(() => {});
     vtBusy = false;
@@ -105,7 +98,7 @@ export default function ThemeToggle() {
       title="Toggle theme"
       className="inline-flex h-8 w-8 items-center justify-center text-foreground hover:brightness-105 transition"
     >
-      <SunMoonIcon isDark={isDark ?? false} />
+      <SunMoonIcon showMoon={showMoon} />
     </button>
   );
 }

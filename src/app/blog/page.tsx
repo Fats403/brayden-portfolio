@@ -3,11 +3,55 @@ import { Link } from "next-view-transitions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-export const metadata = {
-  title: "Blog",
-};
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
+const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || "Blog";
+const TWITTER_HANDLE = process.env.NEXT_PUBLIC_TWITTER_HANDLE;
 
-// ... existing imports ...
+export async function generateMetadata() {
+  const posts = getAllPosts();
+  const allTags = new Set<string>();
+  posts.forEach((p) =>
+    (p.meta.tags || []).forEach((t: string) => allTags.add(t))
+  );
+
+  const title = SITE_NAME ? `${SITE_NAME} | Blog` : "Blog";
+  const description = "Latest posts, guides, and notes.";
+  const canonical = SITE_URL ? `${SITE_URL}/blog` : "/blog";
+
+  return {
+    metadataBase: SITE_URL ? new URL(SITE_URL) : undefined,
+    title,
+    description,
+    alternates: { canonical },
+    keywords: Array.from(allTags),
+    robots: {
+      index: true,
+      follow: true,
+      nocache: false,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
+    },
+    openGraph: {
+      type: "website",
+      url: canonical,
+      siteName: SITE_NAME,
+      title,
+      description,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      creator: TWITTER_HANDLE,
+    },
+  } as any;
+}
+
 export default function BlogIndexPage() {
   const posts = getAllPosts();
 
@@ -59,22 +103,19 @@ export default function BlogIndexPage() {
   );
 }
 
-// Small components for clarity and reuse
-
 function BlogCard({ meta }: { meta: any }) {
   return (
     <Card className="group hover:-translate-y-[1px]">
-      <CardContent className="pt-4">
+      <CardContent className="">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <Link href={`/blog/${meta.slug}`}>
-              <h2
-                className="font-medium hover:opacity-90 transition"
-                style={{ viewTransitionName: `post-title-${meta.slug}` }}
-              >
-                {meta.title}
-              </h2>
-            </Link>
+            <h2
+              className="font-medium hover:opacity-90"
+              style={{ viewTransitionName: `post-title-${meta.slug}` }}
+            >
+              <Link href={`/blog/${meta.slug}`}>{meta.title}</Link>
+            </h2>
+
             <div className="space-y-1">
               <p className="mt-1 text-sm text-muted-foreground">
                 {meta.excerpt ?? ""}
