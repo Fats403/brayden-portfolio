@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ViewTransitions } from "next-view-transitions";
 import { ThemeProvider } from "@/components/theme-provider";
-import Footer from "@/components/footer";
-import Header from "@/components/header";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -40,9 +38,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <div className="mx-auto w-full max-w-[42rem] px-5 py-8 md:py-12 ">
-              <Header />
               <main>{children}</main>
-              <Footer />
             </div>
           </ThemeProvider>
         </ViewTransitions>

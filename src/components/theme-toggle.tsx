@@ -35,8 +35,7 @@ function SunMoonIcon({ showMoon }: { showMoon: boolean }) {
 export default function ThemeToggle() {
   const { theme, setTheme, systemTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-
-  let vtBusy = false;
+  const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
@@ -59,12 +58,12 @@ export default function ThemeToggle() {
     const start = document.startViewTransition?.bind(document);
     const root = document.documentElement;
 
-    if (vtBusy) return;
-    vtBusy = true;
+    if (isAnimating) return;
+    setIsAnimating(true);
 
     if (!start) {
       setTheme(next);
-      vtBusy = false;
+      setIsAnimating(false);
       return;
     }
 
@@ -75,28 +74,35 @@ export default function ThemeToggle() {
 
     await vt?.ready;
 
-    const goingToDark = next === "dark";
-    const keyframes = goingToDark
-      ? { clipPath: ["inset(100% 0 0 0)", "inset(0 0 0 0)"] } // bottom→top
-      : { clipPath: ["inset(0 0 100% 0)", "inset(0 0 0 0)"] }; // top→bottom
+    const maxRadius = Math.hypot(window.innerWidth, window.innerHeight) / 2;
+    const center = "50% 50%";
 
-    root.animate(keyframes, {
-      duration: 500,
-      easing: "cubic-bezier(.22,.75,.15,1)",
-      pseudoElement: "::view-transition-new(root)",
-      fill: "forwards",
-    });
+    // Single animation: reveal new view expanding from the center
+    root.animate(
+      [
+        { clipPath: `circle(0px at ${center})` },
+        { clipPath: `circle(${maxRadius}px at ${center})` },
+      ],
+      {
+        duration: 600,
+        easing: "cubic-bezier(.4,0,.2,1)", // ease-in-out like
+        pseudoElement: "::view-transition-new(root)",
+        fill: "forwards",
+      }
+    );
 
     await vt?.finished.catch(() => {});
-    vtBusy = false;
+    setIsAnimating(false);
   };
 
   return (
     <button
+      disabled={isAnimating}
+      aria-disabled={isAnimating}
       onClick={onToggle}
       aria-label="Toggle theme"
       title="Toggle theme"
-      className="inline-flex h-8 w-8 items-center justify-center text-foreground hover:brightness-105 transition"
+      className="inline-flex h-8 w-8 items-center justify-center text-foreground hover:brightness-105 transition disabled:opacity-70"
     >
       <SunMoonIcon showMoon={showMoon} />
     </button>

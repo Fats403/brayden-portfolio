@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+// Removed Card imports
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -35,7 +35,6 @@ const projects: Project[] = [
       "AI Video",
       "Docker",
     ],
-    href: "https://www.videoventure.ai/",
     repo: "https://github.com/fats403/videoventure",
   },
   {
@@ -50,13 +49,19 @@ const projects: Project[] = [
 
 export default function HomeContent() {
   const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 80);
     return () => clearTimeout(t);
   }, []);
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center">
+    <main
+      className="relative flex flex-col items-center"
+      style={{
+        viewTransitionName: "page",
+      }}
+    >
       {/* Ambient gradient glow */}
       <div
         aria-hidden
@@ -123,15 +128,13 @@ function Hero() {
       <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] bg-secondary text-foreground/90 border-border shadow-sm backdrop-blur">
         <span
           className="inline-block h-1.5 w-1.5 rounded-full"
-          style={{ backgroundColor: "var(--primary)" }}
+          style={{ backgroundColor: "#aefdc6" }}
         />
         Senior Software Engineer • Available for work
       </div>
 
-      {/* Slight entrance only on first mount is already handled by parent container */}
       <h1 className="mt-5 text-3xl font-semibold leading-tight tracking-tight text-foreground md:text-5xl">
-        Designer-Developer crafting thoughtful, performant, and elegant digital
-        experiences.
+        Hey, Im Brayden. <br /> Pretty much all I do is code.
       </h1>
 
       <div className="mt-7 flex flex-wrap gap-3">
@@ -151,11 +154,15 @@ function About() {
     <div className="space-y-3">
       <h2 className="text-xl font-semibold">About Me</h2>
       <p className="text-muted-foreground">
-        I'm a Senior Software Engineer who loves building scalable, reliable
-        products—especially where performance and data meet. I've been coding
-        since I was 13, and that early obsession turned into a career spent
-        designing multi-tenant architectures, shipping cloud migrations, and
-        mentoring teams.
+        I started out building little Flash games at thirteen and never looked
+        back. What began as curiosity turned into a habit of turning ideas into
+        tools, products, and playful experiments.
+      </p>
+      <p className="text-muted-foreground">
+        I care deeply about clear systems, thoughtful UX, and code that ages and
+        scales well. I keep a steady cadence of learning new stacks when they
+        help, and always try and keep up with the latest and greatest in the
+        tech space.
       </p>
     </div>
   );
@@ -220,66 +227,91 @@ function Projects() {
   return (
     <div className="space-y-5 scroll-mt-20" id="projects">
       <h2 className="text-xl font-semibold">Projects</h2>
-      <ul className="grid grid-cols-1 gap-3">
-        {projects.map((p) => (
-          <Card
-            key={p.title}
-            className="group transition-transform duration-200 hover:-translate-y-[1px]"
-          >
-            <CardContent className="pt-4">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h3 className="font-medium">{p.title}</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">
+      <ul className="divide-y divide-border/60">
+        {projects.map((p) => {
+          const titleId = `project-${p.title
+            .replace(/\s+/g, "-")
+            .toLowerCase()}-title`;
+          const descId = `${titleId}-desc`;
+          const primaryHref = p.href || p.repo || undefined;
+          return (
+            <li
+              key={p.title}
+              className="-mx-2 px-2 py-4 rounded-md hover:bg-secondary/40 transition-colors"
+            >
+              <div
+                className="flex items-start justify-between gap-4"
+                role="group"
+                aria-labelledby={titleId}
+                aria-describedby={descId}
+              >
+                <div className="min-w-0 flex-1">
+                  {primaryHref ? (
+                    <a
+                      href={primaryHref}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="group/title inline-block"
+                    >
+                      <h3
+                        id={titleId}
+                        className="font-medium tracking-tight group-hover/title:opacity-90"
+                      >
+                        {p.title}
+                      </h3>
+                    </a>
+                  ) : (
+                    <h3 id={titleId} className="font-medium tracking-tight">
+                      {p.title}
+                    </h3>
+                  )}
+                  <p
+                    id={descId}
+                    className="mt-1 text-sm text-muted-foreground line-clamp-2"
+                  >
                     {p.description}
                   </p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {p.tags.map((t) => (
+                      <Badge
+                        key={t}
+                        variant="outline"
+                        className="text-[10px] font-normal"
+                      >
+                        {t}
+                      </Badge>
+                    ))}
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                    {p.href && (
+                      <a
+                        href={p.href}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="hover:text-foreground transition-colors"
+                      >
+                        Live ↗
+                      </a>
+                    )}
+                    {p.repo && (
+                      <a
+                        href={p.repo}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="hover:text-foreground transition-colors"
+                      >
+                        Code ↗
+                      </a>
+                    )}
+                  </div>
                 </div>
-                <div className="shrink-0">
-                  <Button variant="outline" size="icon" className="h-8 w-8">
-                    <span className="sr-only">Open</span>↗
-                  </Button>
-                </div>
+                <span className="mt-0.5 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+                  ↗
+                </span>
               </div>
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {p.tags.map((t) => (
-                  <Badge
-                    key={t}
-                    variant="outline"
-                    className="text-[10px] font-normal"
-                  >
-                    {t}
-                  </Badge>
-                ))}
-              </div>
-              <div className="mt-3 flex gap-3 text-xs">
-                {p.href && (
-                  <Button
-                    asChild
-                    variant="ghost"
-                    size="sm"
-                    className="px-2 h-7"
-                  >
-                    <a href={p.href} target="_blank" rel="noreferrer">
-                      Live
-                    </a>
-                  </Button>
-                )}
-                {p.repo && (
-                  <Button
-                    asChild
-                    variant="ghost"
-                    size="sm"
-                    className="px-2 h-7"
-                  >
-                    <a href={p.repo} target="_blank" rel="noreferrer">
-                      Code
-                    </a>
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

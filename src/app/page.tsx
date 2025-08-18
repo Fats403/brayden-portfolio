@@ -1,3 +1,5 @@
+import Footer from "@/components/footer";
+import Header from "@/components/header";
 import HomeContent from "@/components/home-content";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
@@ -39,9 +41,17 @@ export async function generateMetadata() {
       description,
       creator: TWITTER_HANDLE,
     },
-  } as any;
+  };
 }
 
 export default function HomePage() {
-  return <HomeContent />;
+  return (
+    <div className="min-h-dvh">
+      <Header />
+
+      <HomeContent />
+
+      <Footer />
+    </div>
+  );
 }

@@ -3,6 +3,8 @@ import { MDXRemote } from "next-mdx-remote/rsc";
 import { getAllPosts, getPostBySlug } from "@/lib/mdx";
 import { Prose } from "@/components/prose";
 import { MDXComponents } from "@/components/mdx-components";
+import Header from "@/components/header";
+import Footer from "@/components/footer";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
 const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME;
@@ -79,6 +81,7 @@ export default async function BlogPostPage({
 }) {
   let post;
   const { slug } = await params;
+
   try {
     post = getPostBySlug(slug);
   } catch {
@@ -88,8 +91,9 @@ export default async function BlogPostPage({
   const { meta, content } = post;
 
   return (
-    <main className="mt-5 relative min-h-screen">
-      <div className="page-enter">
+    <>
+      <Header />
+      <main className="mt-5 relative min-h-screen">
         <article className="space-y-6 w-full">
           <div className="space-y-3">
             <h1
@@ -114,11 +118,14 @@ export default async function BlogPostPage({
             </div>
           </div>
 
-          <Prose>
-            <MDXRemote source={content} components={MDXComponents as any} />
-          </Prose>
+          <div className="page-enter">
+            <Prose>
+              <MDXRemote source={content} components={MDXComponents as any} />
+            </Prose>
+          </div>
         </article>
-      </div>
-    </main>
+      </main>
+      <Footer />
+    </>
   );
 }
