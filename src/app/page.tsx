@@ -16,7 +16,12 @@ export async function generateMetadata() {
     metadataBase: SITE_URL ? new URL(SITE_URL) : undefined,
     title,
     description,
-    alternates: { canonical },
+    alternates: {
+      canonical,
+      types: {
+        "application/rss+xml": SITE_URL ? `${SITE_URL}/rss.xml` : "/rss.xml",
+      },
+    },
     robots: {
       index: true,
       follow: true,
