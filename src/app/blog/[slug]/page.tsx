@@ -120,7 +120,7 @@ export default async function BlogPostPage({
 
           <div className="page-enter">
             <Prose>
-              <MDXRemote source={content} components={MDXComponents as any} />
+              <MDXRemote source={content} components={MDXComponents} />
             </Prose>
           </div>
         </article>
