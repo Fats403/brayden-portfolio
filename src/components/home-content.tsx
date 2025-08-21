@@ -142,7 +142,14 @@ function Hero() {
           <a href="#projects">View Projects</a>
         </Button>
         <Button asChild size="sm" variant="secondary">
-          <a href="/resume.pdf">Download Resume</a>
+          <a
+            href="/resume.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            download
+          >
+            Download Resume
+          </a>
         </Button>
       </div>
     </div>
@@ -171,22 +178,28 @@ function About() {
 function Experience() {
   const items = [
     {
-      role: "Backend Developer",
-      org: "OnGuard",
-      time: "06/2016 — 07/2020 • Calgary, AB",
-      desc: "Built and maintained backend services and APIs; contributed to data workflows and performance tuning.",
+      role: "Senior Software Engineer",
+      org: "Yana Motion Labs",
+      time: "2023 — Present • Calgary, AB",
+      desc: "Rebuilt the website with a modern, accessible, performance-first stack, implemented HIPAA-aligned AI pipelines and internal tools, and led technical SEO that increased organic visibility across 5+ target keywords.",
+    },
+    {
+      role: "Senior Software Engineer",
+      org: "DataTrail Corp.",
+      time: "02/2021 — 07/2025 • Calgary, AB",
+      desc: "Modernized legacy .NET C# and React systems, migrated payments from PayPal to Stripe, delivered device–server–UI features end-to-end, and introduced CI/CD pipelines for microservices for crucial GIS applications.",
     },
     {
       role: "Senior Software Engineer",
       org: "Enviros",
       time: "06/2024 — 04/2025 • Calgary, AB",
-      desc: "Led full-stack initiatives across frontend UX and backend APIs; delivered secure, reliable features at pace.",
+      desc: "Architected secure multi-tenant MySQL/Drizzle with granular RBAC and audit trails, built CANS-aligned interfaces with analytics dashboards, and reduced assessment completion times by ~45% while cutting reporting from hours to minutes.",
     },
     {
-      role: "Senior Software Engineer",
-      org: "DataTrail Corp.",
-      time: "02/2021 — Current • Calgary, AB",
-      desc: "Owning end-to-end delivery: design systems, scalable APIs, data pipelines, and cloud infrastructure.",
+      role: "Backend Developer",
+      org: "OnGuard",
+      time: "06/2016 — 07/2020 • Calgary, AB",
+      desc: "Built and operated Node.js REST/microservices with CI/CD and observability, integrated third-party services to scale data workflows, and improved P95 latency by ~20% via caching, query tuning, and async queues.",
     },
   ];
   return (

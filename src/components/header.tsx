@@ -23,9 +23,9 @@ export default function Header() {
           href="/"
           className="group inline-flex items-center font-medium text-foreground"
         >
-          <Avatar>
+          <Avatar className="border border-foreground">
             <AvatarImage
-              src="https://avatars.githubusercontent.com/u/30492327?s=400&u=57a6f5993e37d3de5b0a53a687235d970c8aaef5&v=4"
+              src="/android-chrome-192x192.png"
               alt="Brayden Blackwell Logo"
             />
             <AvatarFallback>BB</AvatarFallback>
