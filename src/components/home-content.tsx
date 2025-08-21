@@ -196,10 +196,10 @@ function Experience() {
       desc: "Architected secure multi-tenant MySQL/Drizzle with granular RBAC and audit trails, built CANS-aligned interfaces with analytics dashboards, and reduced assessment completion times by ~45% while cutting reporting from hours to minutes.",
     },
     {
-      role: "Backend Developer",
+      role: "Junior Backend Developer",
       org: "OnGuard",
       time: "06/2016 — 07/2020 • Calgary, AB",
-      desc: "Built and operated Node.js REST/microservices with CI/CD and observability, integrated third-party services to scale data workflows, and improved P95 latency by ~20% via caching, query tuning, and async queues.",
+      desc: "Built and operated Node.js REST/microservices with CI/CD and observability, integrated third-party services to scale data workflows.",
     },
   ];
   return (
