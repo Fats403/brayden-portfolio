@@ -1,467 +1,545 @@
 "use client";
 
-import { useEffect, useState } from "react";
-// Removed Card imports
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
+import { useEffect, useState, useRef, type ReactNode } from "react";
 
-type Project = {
-  title: string;
-  description: string;
-  tags: string[];
-  href?: string;
-  repo?: string;
-};
+// ─── Data ──────────────────────────────────────────────────────────────────────
 
-const projects: Project[] = [
+const experience = [
   {
-    title: "simple-ffmpeg",
+    role: "Senior Software Engineer",
+    company: "Yana Motion Labs",
+    period: "2023 — Present",
+    location: "Calgary, AB",
     description:
-      "Simple lightweight Node.js helper around FFmpeg for quick video composition, transitions, audio mixing, and animated text overlays.",
-    tags: ["FFmpeg", "Open Source"],
-    repo: "https://github.com/fats403/simple-ffmpeg",
+      "Rebuilt the website from scratch with a modern, accessible, performance-first stack using React. Implemented HIPAA-compliant AI pipelines and internal tooling, and led a technical SEO initiative that pushed 5+ target keywords onto the first page of search results.",
   },
   {
-    title: "Video Venture AI",
+    role: "Senior Software Engineer",
+    company: "Enviros",
+    period: "06/2024 — 04/2025",
+    location: "Calgary, AB",
     description:
-      "Currentlty in development AI-powered video generation platform that creates videos from text descriptions using multiple different AI models.",
-    tags: [
-      "TypeScript",
-      "React",
-      "Node.js",
-      "Monorepo",
-      "BullMQ",
-      "AI Video",
-      "Docker",
-    ],
-    repo: "https://github.com/fats403/videoventure",
+      "Built a secure platform handling sensitive children's data, where every feature required rigorous security review and strict compliance standards. Architected multi-tenant MySQL/Drizzle with granular RBAC, full audit trails, and encryption at rest. Developed CANS-aligned assessment interfaces with analytics dashboards that cut completion times by roughly 45%.",
+  },
+  {
+    role: "Senior Software Engineer",
+    company: "DataTrail Corp.",
+    period: "02/2021 — 07/2025",
+    location: "Calgary, AB",
+    description:
+      "Owned the full product lifecycle for critical GIS applications, from planning through delivery. Modernized legacy .NET/C# and React systems, built IoT device integrations from firmware to server to UI, and migrated payments from PayPal to Stripe. Mentored junior developers and introduced CI/CD pipelines across the microservices stack.",
+  },
+  {
+    role: "Junior Backend Developer",
+    company: "OnGuard",
+    period: "06/2016 — 07/2020",
+    location: "Calgary, AB",
+    description:
+      "Built and maintained Node.js and C# REST APIs and microservices with CI/CD and monitoring. Integrated third-party services to automate and scale data workflows across the platform.",
+  },
+];
+
+const projects = [
+  {
+    title: "simple-ffmpegjs",
+    description:
+      "Declarative video composition for Node.js — define clips, transitions, text overlays, and audio as simple objects, and let FFmpeg handle the rest. Zero dependencies, TypeScript ready, with pre-validation and platform presets.",
+    tags: ["FFmpeg", "Node.js", "Open Source"],
+    href: undefined as string | undefined,
+    repo: "https://github.com/fats403/simple-ffmpegjs",
+  },
+  {
+    title: "VideoVenture",
+    description:
+      "AI-powered video editor that turns raw photos, clips, and audio into polished, directed videos. Describe your vision in plain English — the AI handles editing, music, and rendering. No timeline, no film school.",
+    tags: ["TypeScript", "React", "Node.js", "AI Video", "SaaS"],
+    href: "https://www.videoventure.ai/",
   },
   {
     title: "Word Wurm",
     description:
-      "A simple browser based word game that is based off one of my favorite pop-cap games Book Worm",
+      "A simple browser based word game that is based off one of my favorite pop-cap games Book Worm.",
     tags: ["Next.js", "Game", "TailwindCSS"],
     href: "https://www.wordwurm.com/",
     repo: "https://github.com/fats403/word-wurm",
   },
 ];
 
+const skillGroups = [
+  {
+    label: "Frontend",
+    items: [
+      "React",
+      "Next.js",
+      "Vue",
+      "Svelte",
+      "TypeScript",
+      "JavaScript",
+      "Tailwind CSS",
+      "Framer Motion",
+    ],
+  },
+  {
+    label: "Backend",
+    items: [
+      "Node.js",
+      "C# / .NET",
+      "Express",
+      "Fastify",
+      "Hono",
+      "tRPC",
+      "REST APIs",
+      "Microservices",
+    ],
+  },
+  {
+    label: "Data",
+    items: ["MySQL", "PostgreSQL", "Drizzle ORM", "MongoDB", "Multi-tenant"],
+  },
+  {
+    label: "Cloud",
+    items: ["AWS", "GCP", "Docker", "GitHub Actions"],
+  },
+  {
+    label: "AI / ML",
+    items: ["Python", "TensorFlow", "ML", "Data Viz"],
+  },
+  {
+    label: "Security",
+    items: ["JWT", "OAuth", "RBAC", "HIPAA"],
+  },
+];
+
+const metrics = [
+  { value: "10+", label: "Years Deep" },
+  { value: "∞", label: "Tabs Open" },
+  { value: "24/7", label: "Locked In" },
+  { value: "0", label: "Regrets" },
+];
+
+// ─── Hooks ─────────────────────────────────────────────────────────────────────
+
+function useReveal(threshold = 0.1) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.unobserve(el);
+        }
+      },
+      { threshold, rootMargin: "0px 0px -30px 0px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [threshold]);
+
+  return { ref, visible };
+}
+
+function Reveal({
+  children,
+  delay = 0,
+  className = "",
+}: {
+  children: ReactNode;
+  delay?: number;
+  className?: string;
+}) {
+  const { ref, visible } = useReveal();
+  return (
+    <div
+      ref={ref}
+      className={className}
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(1.25rem)",
+        transition: `opacity 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}ms, transform 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}ms`,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function useCountUp(target: number, duration = 1200) {
+  const [count, setCount] = useState(0);
+  const [started, setStarted] = useState(false);
+  const ref = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setStarted(true);
+          observer.unobserve(el);
+        }
+      },
+      { threshold: 0.5 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!started) return;
+    const start = performance.now();
+    const step = (now: number) => {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.round(eased * target));
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }, [started, target, duration]);
+
+  return { ref, count };
+}
+
+// ─── Sub-components ────────────────────────────────────────────────────────────
+
+function SectionBar({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="inline-block h-3 w-0.5 bg-foreground rounded-full" />
+      <h2 className="text-sm font-semibold text-foreground tracking-tight">
+        {label}
+      </h2>
+    </div>
+  );
+}
+
+function MetricCard({ value, label }: { value: string; label: string }) {
+  const numericPart = parseInt(value);
+  const suffix = value.replace(/\d+/, "");
+  const { ref, count } = useCountUp(isNaN(numericPart) ? 0 : numericPart, 1000);
+
+  return (
+    <div className="rounded-xl border border-border/50 bg-secondary/20 p-4 text-center">
+      <span
+        ref={ref}
+        className="block text-2xl font-bold text-foreground tracking-tight font-mono"
+      >
+        {isNaN(numericPart) ? value : `${count}${suffix}`}
+      </span>
+      <span className="block mt-1 text-[10px] text-muted-foreground/70 font-mono uppercase tracking-wider">
+        {label}
+      </span>
+    </div>
+  );
+}
+
+function GlowCard({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`sig-glow-card rounded-xl border border-border/50 p-5 transition-all duration-300 hover:border-border ${className}`}
+      onMouseMove={(e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        e.currentTarget.style.setProperty(
+          "--mouse-x",
+          `${e.clientX - rect.left}px`,
+        );
+        e.currentTarget.style.setProperty(
+          "--mouse-y",
+          `${e.clientY - rect.top}px`,
+        );
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+// ─── Main Content ──────────────────────────────────────────────────────────────
+
 export default function HomeContent() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const t = setTimeout(() => setMounted(true), 80);
-    return () => clearTimeout(t);
+    setMounted(true);
   }, []);
 
   return (
-    <main
-      className="relative flex flex-col items-center"
-      style={{
-        viewTransitionName: "page",
-      }}
-    >
-      {/* Ambient gradient glow */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
-      >
+    <>
+      {/* ── Hero ─────────────────────────────────────────────── */}
+      <section className="mt-10 mb-20 md:mb-28">
         <div
-          className="absolute left-1/2 top-[-10rem] h-[30rem] w-[40rem] -translate-x-1/2 rounded-full"
           style={{
-            background:
-              "radial-gradient(ellipse at center, color-mix(in oklab, var(--accent) 16%, transparent) 0%, transparent 60%)",
-            filter: "blur(2rem)",
+            opacity: mounted ? 1 : 0,
+            transform: mounted ? "translateY(0)" : "translateY(1rem)",
+            transition:
+              "opacity 1s cubic-bezier(0.16,1,0.3,1), transform 1s cubic-bezier(0.16,1,0.3,1)",
           }}
+        >
+          <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/80 backdrop-blur-sm px-3 py-1.5 text-[10px] uppercase tracking-[0.15em] text-muted-foreground shadow-sm">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+            </span>
+            Available for work
+          </div>
+        </div>
+
+        <div
+          style={{
+            opacity: mounted ? 1 : 0,
+            transform: mounted ? "translateY(0)" : "translateY(1.5rem)",
+            transition:
+              "opacity 1s cubic-bezier(0.16,1,0.3,1) 0.15s, transform 1s cubic-bezier(0.16,1,0.3,1) 0.15s",
+          }}
+        >
+          <h1 className="mt-8 text-5xl md:text-7xl font-semibold leading-[0.92] tracking-tighter text-foreground">
+            Brayden
+            <br />
+            Blackwell
+          </h1>
+        </div>
+
+        <div
+          className="mono-hero-line mt-8 h-px bg-border origin-left"
+          style={{ opacity: mounted ? 1 : 0 }}
         />
-      </div>
 
-      {/* Content container */}
-      <div
-        className={`transition-all duration-700 ${
-          mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
-        }`}
-      >
-        <section id="hero" className="mt-6 md:mt-8">
-          <Hero />
-        </section>
+        <div
+          style={{
+            opacity: mounted ? 1 : 0,
+            transform: mounted ? "translateY(0)" : "translateY(1rem)",
+            transition:
+              "opacity 0.9s cubic-bezier(0.16,1,0.3,1) 0.4s, transform 0.9s cubic-bezier(0.16,1,0.3,1) 0.4s",
+          }}
+        >
+          <p className="mt-6 text-lg text-muted-foreground">
+            Senior Software Engineer
+          </p>
+          <p className="mt-3 text-muted-foreground leading-relaxed max-w-md">
+            Pretty much all I do is code. Building thoughtful, performant
+            experiences from Calgary, AB.
+          </p>
+        </div>
 
-        <Separator className="my-10 md:my-12" />
+        {/* Metrics */}
+        <div
+          className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-3"
+          style={{
+            opacity: mounted ? 1 : 0,
+            transform: mounted ? "translateY(0)" : "translateY(1rem)",
+            transition:
+              "opacity 0.9s cubic-bezier(0.16,1,0.3,1) 0.55s, transform 0.9s cubic-bezier(0.16,1,0.3,1) 0.55s",
+          }}
+        >
+          {metrics.map((m) => (
+            <MetricCard key={m.label} value={m.value} label={m.label} />
+          ))}
+        </div>
 
-        <section id="about">
-          <About />
-        </section>
-
-        <Separator className="my-10 md:my-12" />
-
-        <section id="experience">
-          <Experience />
-        </section>
-
-        <Separator className="my-10 md:my-12" />
-
-        <section id="projects">
-          <Projects />
-        </section>
-
-        <Separator className="my-10 md:my-12" />
-
-        <section id="skills">
-          <Skills />
-        </section>
-
-        <Separator className="my-10 md:my-12" />
-
-        <section id="contact" className="mb-6">
-          <Contact />
-        </section>
-      </div>
-    </main>
-  );
-}
-
-function Hero() {
-  return (
-    <div className="relative">
-      {/* Subhead chip */}
-      <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] bg-secondary text-foreground/90 border-border shadow-sm backdrop-blur">
-        <span
-          className="inline-block h-1.5 w-1.5 rounded-full"
-          style={{ backgroundColor: "#aefdc6" }}
-        />
-        Senior Software Engineer • Available for work
-      </div>
-
-      <h1 className="mt-5 text-3xl font-semibold leading-tight tracking-tight text-foreground md:text-5xl">
-        Hey, Im Brayden. <br /> Pretty much all I do is code.
-      </h1>
-
-      <div className="mt-7 flex flex-wrap gap-3">
-        <Button asChild size="sm">
-          <a href="#projects">View Projects</a>
-        </Button>
-        <Button asChild size="sm" variant="secondary">
+        <div
+          className="flex gap-3 mt-10"
+          style={{
+            opacity: mounted ? 1 : 0,
+            transform: mounted ? "translateY(0)" : "translateY(1rem)",
+            transition:
+              "opacity 0.8s cubic-bezier(0.16,1,0.3,1) 0.7s, transform 0.8s cubic-bezier(0.16,1,0.3,1) 0.7s",
+          }}
+        >
+          <a
+            href="#projects"
+            className="inline-flex items-center justify-center rounded-lg bg-foreground text-background px-5 py-2.5 text-sm font-medium hover:opacity-90 transition-opacity"
+          >
+            View Projects
+          </a>
           <a
             href="/resume.pdf"
             target="_blank"
             rel="noopener noreferrer"
             download
+            className="inline-flex items-center justify-center rounded-lg border border-border bg-background px-5 py-2.5 text-sm font-medium text-foreground hover:bg-secondary/50 transition-colors"
           >
             Download Resume
           </a>
-        </Button>
-      </div>
-    </div>
-  );
-}
+        </div>
+      </section>
 
-function About() {
-  return (
-    <div className="space-y-3">
-      <h2 className="text-xl font-semibold">About Me</h2>
-      <p className="text-muted-foreground">
-        I started out building little Flash games at thirteen and never looked
-        back. What began as curiosity turned into a habit of turning ideas into
-        tools, products, and playful experiments.
-      </p>
-      <p className="text-muted-foreground">
-        I care deeply about clear systems, thoughtful UX, and code that ages and
-        scales well. I keep a steady cadence of learning new stacks when they
-        help, and always try and keep up with the latest and greatest in the
-        tech space.
-      </p>
-    </div>
-  );
-}
+      {/* ── About ────────────────────────────────────────────── */}
+      <section className="mb-20 md:mb-24">
+        <Reveal>
+          <SectionBar label="About" />
+          <div className="mt-6 space-y-4 text-muted-foreground leading-[1.7]">
+            <p>
+              I&apos;ve been writing code since I was thirteen. Started with
+              Flash games, moved on to real jobs, and somehow never picked up a
+              backup career. Pretty much all I do is code. I say that like
+              it&apos;s a joke but it&apos;s really just the truth.
+            </p>
+            <p>
+              Once I start on something it kind of takes over.. I get locked in
+              on the details until every edge case is handled and the whole
+              thing feels right. I like systems that make sense, UIs that stay
+              out of the way, and shipping things that actually work. When
+              I&apos;m not building products I&apos;m usually building tools to
+              help me build products faster.
+            </p>
+          </div>
+        </Reveal>
+      </section>
 
-function Experience() {
-  const items = [
-    {
-      role: "Senior Software Engineer",
-      org: "Yana Motion Labs",
-      time: "2023 — Present • Calgary, AB",
-      desc: "Rebuilt the website with a modern, accessible, performance-first stack, implemented HIPAA-aligned AI pipelines and internal tools, and led technical SEO that increased organic visibility across 5+ target keywords.",
-    },
-    {
-      role: "Senior Software Engineer",
-      org: "DataTrail Corp.",
-      time: "02/2021 — 07/2025 • Calgary, AB",
-      desc: "Modernized legacy .NET C# and React systems, migrated payments from PayPal to Stripe, delivered device–server–UI features end-to-end, and introduced CI/CD pipelines for microservices for crucial GIS applications.",
-    },
-    {
-      role: "Senior Software Engineer",
-      org: "Enviros",
-      time: "06/2024 — 04/2025 • Calgary, AB",
-      desc: "Architected secure multi-tenant MySQL/Drizzle with granular RBAC and audit trails, built CANS-aligned interfaces with analytics dashboards, and reduced assessment completion times by ~45% while cutting reporting from hours to minutes.",
-    },
-    {
-      role: "Junior Backend Developer",
-      org: "OnGuard",
-      time: "06/2016 — 07/2020 • Calgary, AB",
-      desc: "Built and operated Node.js REST/microservices with CI/CD and observability, integrated third-party services to scale data workflows.",
-    },
-  ];
-  return (
-    <div className="space-y-5">
-      <h2 className="text-xl font-semibold">Experience</h2>
-      <div className="relative">
-        {/* Axis */}
-        <div
-          className="absolute left-[10px] top-0 bottom-0 w-px bg-border"
-          aria-hidden
-        />
-        <ul className="space-y-6">
-          {items.map((i) => (
-            <li key={`${i.org}-${i.role}`} className="pt-4 relative pl-8">
-              {/* Dot */}
-              <div className="absolute left-[6px] top-1.5 h-2.5 w-2.5 rounded-full bg-foreground" />
-              <div className="mt-4 flex flex-col gap-2">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="font-medium">
-                    {i.role} •{" "}
-                    <span className="text-muted-foreground">{i.org}</span>
+      {/* ── Experience ───────────────────────────────────────── */}
+      <section className="mb-20 md:mb-24">
+        <Reveal>
+          <SectionBar label="Experience" />
+        </Reveal>
+        <div className="mt-6 space-y-3">
+          {experience.map((item, i) => (
+            <Reveal key={i} delay={i * 60}>
+              <GlowCard>
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 mb-2">
+                  <div>
+                    <h3 className="font-semibold text-foreground text-[14px]">
+                      {item.company}
+                    </h3>
+                    <p className="text-sm text-muted-foreground/80">
+                      {item.role}
+                    </p>
                   </div>
-                  <div className="text-xs text-muted-foreground whitespace-nowrap">
-                    {i.time}
+                  <div className="flex items-center gap-2 text-[11px] text-muted-foreground/60 font-mono whitespace-nowrap">
+                    <span className="inline-block h-1 w-1 rounded-full bg-muted-foreground/30" />
+                    {item.period}
                   </div>
                 </div>
-                <p className="mt-2 text-sm text-muted-foreground">{i.desc}</p>
-              </div>
-            </li>
+                <p className="text-[13px] text-muted-foreground leading-relaxed">
+                  {item.description}
+                </p>
+              </GlowCard>
+            </Reveal>
           ))}
-        </ul>
-      </div>
-    </div>
-  );
-}
+        </div>
+      </section>
 
-function Projects() {
-  return (
-    <div className="space-y-5 scroll-mt-20" id="projects">
-      <h2 className="text-xl font-semibold">Projects</h2>
-      <ul className="divide-y divide-border/60">
-        {projects.map((p) => {
-          const titleId = `project-${p.title
-            .replace(/\s+/g, "-")
-            .toLowerCase()}-title`;
-          const descId = `${titleId}-desc`;
-          const primaryHref = p.href || p.repo || undefined;
-          return (
-            <li
-              key={p.title}
-              className="-mx-2 px-2 py-4 rounded-md hover:bg-secondary/40 transition-colors"
-            >
-              <div
-                className="flex items-start justify-between gap-4"
-                role="group"
-                aria-labelledby={titleId}
-                aria-describedby={descId}
-              >
-                <div className="min-w-0 flex-1">
-                  {primaryHref ? (
+      {/* ── Projects ─────────────────────────────────────────── */}
+      <section id="projects" className="mb-20 md:mb-24 scroll-mt-24">
+        <Reveal>
+          <SectionBar label="Projects" />
+        </Reveal>
+        <div className="mt-6 space-y-3">
+          {projects.map((project, i) => (
+            <Reveal key={i} delay={i * 80}>
+              <GlowCard className="group">
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="font-semibold text-foreground tracking-tight text-[15px]">
+                    {project.title}
+                  </h3>
+                  <span className="text-muted-foreground/30 group-hover:text-muted-foreground/70 transition-colors text-sm">
+                    ↗
+                  </span>
+                </div>
+                <p className="mt-2 text-[13px] text-muted-foreground leading-relaxed">
+                  {project.description}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {project.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="font-mono text-[10px] text-muted-foreground/60 bg-secondary/50 border border-border/40 rounded-md px-2 py-0.5"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                <div className="mt-3 flex items-center gap-4 text-xs">
+                  {project.href && (
                     <a
-                      href={primaryHref}
+                      href={project.href}
                       target="_blank"
                       rel="noreferrer"
-                      className="group/title inline-block"
+                      className="font-mono text-muted-foreground hover:text-foreground transition-colors"
                     >
-                      <h3
-                        id={titleId}
-                        className="font-medium tracking-tight group-hover/title:opacity-90"
-                      >
-                        {p.title}
-                      </h3>
+                      [live]
                     </a>
-                  ) : (
-                    <h3 id={titleId} className="font-medium tracking-tight">
-                      {p.title}
-                    </h3>
                   )}
-                  <p
-                    id={descId}
-                    className="mt-1 text-sm text-muted-foreground line-clamp-2"
-                  >
-                    {p.description}
-                  </p>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {p.tags.map((t) => (
-                      <Badge
-                        key={t}
-                        variant="outline"
-                        className="text-[10px] font-normal"
-                      >
-                        {t}
-                      </Badge>
-                    ))}
-                  </div>
-                  <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                    {p.href && (
-                      <a
-                        href={p.href}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="hover:text-foreground transition-colors"
-                      >
-                        Live ↗
-                      </a>
-                    )}
-                    {p.repo && (
-                      <a
-                        href={p.repo}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="hover:text-foreground transition-colors"
-                      >
-                        Code ↗
-                      </a>
-                    )}
-                  </div>
+                  {project.repo && (
+                    <a
+                      href={project.repo}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-mono text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      [source]
+                    </a>
+                  )}
                 </div>
-                <span className="mt-0.5 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
-                  ↗
-                </span>
+              </GlowCard>
+            </Reveal>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Skills ───────────────────────────────────────────── */}
+      <section className="mb-20 md:mb-24">
+        <Reveal>
+          <SectionBar label="Skills" />
+        </Reveal>
+        <Reveal delay={100}>
+          <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-5">
+            {skillGroups.map((group) => (
+              <div key={group.label}>
+                <h3 className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground/60 mb-2.5">
+                  {group.label}
+                </h3>
+                <ul className="space-y-1">
+                  {group.items.map((skill) => (
+                    <li
+                      key={skill}
+                      className="text-[12px] text-foreground/70 flex items-center gap-2"
+                    >
+                      <span className="h-px w-2 bg-border" />
+                      {skill}
+                    </li>
+                  ))}
+                </ul>
               </div>
-            </li>
-          );
-        })}
-      </ul>
-    </div>
-  );
-}
-
-function Skills() {
-  const levelClass = {
-    base: "bg-secondary text-foreground border border-border/80",
-    plus: "bg-secondary text-foreground border border-border/60",
-    pro: "bg-secondary text-foreground border border-border/40 shadow-[inset_0_0_0_1px_var(--color-border)]",
-  } as const;
-
-  const groups = [
-    {
-      label: "Frontend",
-      items: [
-        { name: "React", level: "pro" },
-        { name: "Next.js", level: "pro" },
-        { name: "Vue", level: "base" },
-        { name: "Svelte", level: "base" },
-        { name: "TypeScript", level: "pro" },
-        { name: "JavaScript (ES6+)", level: "pro" },
-        { name: "Tailwind CSS", level: "plus" },
-        { name: "Framer Motion", level: "plus" },
-        { name: "Responsive Design", level: "pro" },
-      ],
-    },
-    {
-      label: "Backend APIs",
-      items: [
-        { name: "Node.js", level: "pro" },
-        { name: "Express", level: "plus" },
-        { name: "Django", level: "base" },
-        { name: "Fastify", level: "plus" },
-        { name: "Elysia", level: "base" },
-        { name: "Hono", level: "base" },
-        { name: "tRPC", level: "plus" },
-        { name: "RESTful APIs", level: "pro" },
-        { name: "Microservices Architecture", level: "plus" },
-      ],
-    },
-    {
-      label: "Databases",
-      items: [
-        { name: "MySQL", level: "pro" },
-        { name: "PostgreSQL", level: "pro" },
-        { name: "Drizzle ORM", level: "plus" },
-        { name: "MongoDB", level: "plus" },
-        { name: "SQL Optimization", level: "pro" },
-        { name: "Multi-tenant Architecture", level: "pro" },
-      ],
-    },
-    {
-      label: "Cloud & Infra",
-      items: [
-        { name: "AWS", level: "plus" },
-        { name: "GCP", level: "base" },
-        { name: "Azure", level: "base" },
-        { name: "Docker", level: "pro" },
-      ],
-    },
-    {
-      label: "Auth & Security",
-      items: [
-        { name: "Clerk", level: "plus" },
-        { name: "JWT", level: "pro" },
-        { name: "OAuth", level: "plus" },
-        { name: "RBAC", level: "plus" },
-        { name: "HIPAA-Compliant Data", level: "plus" },
-      ],
-    },
-    {
-      label: "AI/ML & Analytics",
-      items: [
-        { name: "Python", level: "plus" },
-        { name: "TensorFlow", level: "base" },
-        { name: "Machine Learning", level: "plus" },
-        { name: "Geospatial Analysis", level: "plus" },
-        { name: "Data Viz (Recharts, D3)", level: "plus" },
-      ],
-    },
-    {
-      label: "DevOps",
-      items: [
-        { name: "Git/GitHub", level: "pro" },
-        { name: "Azure Repos", level: "base" },
-        { name: "GitHub Actions", level: "plus" },
-        { name: "GCR", level: "base" },
-      ],
-    },
-  ];
-
-  return (
-    <div className="space-y-5">
-      <h2 className="text-xl font-semibold">Skills</h2>
-      <div className="space-y-3">
-        {groups.map((g) => (
-          <div key={g.label}>
-            <div className="mb-2 text-sm font-medium">{g.label}</div>
-            <div className="flex flex-wrap gap-1.5">
-              {g.items.map((s) => (
-                <span
-                  key={s.name}
-                  className={[
-                    "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] leading-5",
-                    levelClass[s.level as keyof typeof levelClass],
-                  ].join(" ")}
-                >
-                  {s.name}
-                </span>
-              ))}
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+        </Reveal>
+      </section>
 
-function Contact() {
-  return (
-    <div className="space-y-5">
-      <h2 className="text-xl font-semibold">Contact</h2>
-      <p className="text-muted-foreground">
-        Want to collaborate or have a project in mind? I’d love to hear from
-        you.
-      </p>
-      <div className="flex flex-wrap gap-3">
-        <Button asChild>
-          <a href="mailto:braydenblackwell21@gmail.com">Email Me</a>
-        </Button>
-        <Button asChild variant="secondary">
-          <a href="https://github.com/fats403" target="_blank" rel="noreferrer">
-            GitHub
-          </a>
-        </Button>
-      </div>
-    </div>
+      {/* ── Contact ──────────────────────────────────────────── */}
+      <section className="mb-20">
+        <Reveal>
+          <SectionBar label="Contact" />
+          <p className="mt-6 text-muted-foreground leading-relaxed">
+            Want to collaborate or have a project in mind? I&apos;d love to hear
+            from you.
+          </p>
+          <div className="flex gap-3 mt-6">
+            <a
+              href="mailto:braydenblackwell21@gmail.com"
+              className="inline-flex items-center justify-center rounded-lg bg-foreground text-background px-5 py-2.5 text-sm font-medium hover:opacity-90 transition-opacity"
+            >
+              Email Me
+            </a>
+            <a
+              href="https://github.com/fats403"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center rounded-lg border border-border bg-background px-5 py-2.5 text-sm font-medium text-foreground hover:bg-secondary/50 transition-colors"
+            >
+              GitHub
+            </a>
+          </div>
+        </Reveal>
+      </section>
+    </>
   );
 }

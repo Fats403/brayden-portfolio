@@ -157,15 +157,101 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  /* ── Root page transition: subtle slide + crossfade ─────────────────────── */
+  ::view-transition-old(root) {
+    animation: vt-fade-slide-out 0.25s cubic-bezier(0.4, 0, 1, 1) both;
+  }
+  ::view-transition-new(root) {
+    animation: vt-fade-slide-in 0.35s cubic-bezier(0, 0, 0.2, 1) 0.08s both;
+  }
   ::view-transition-old(root),
   ::view-transition-new(root) {
+    mix-blend-mode: normal;
+  }
+
+  /* ── Named transitions: smooth morph with spring easing ────────────────── */
+  ::view-transition-group(*) {
+    animation-duration: 0.45s;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* ── Header elements persist across navigations ────────────────────────── */
+  ::view-transition-old(header-logo),
+  ::view-transition-new(header-logo),
+  ::view-transition-old(header-nav),
+  ::view-transition-new(header-nav) {
     animation: none;
     mix-blend-mode: normal;
   }
 }
 
+@keyframes vt-fade-slide-out {
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes vt-fade-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+/* ── Blog list staggered entry animations ──────────────────────────────────── */
+
+@keyframes blog-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes blog-heading-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes blog-line-enter {
+  from {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+.blog-heading-enter {
+  animation: blog-heading-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.blog-card-enter {
+  animation: blog-card-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.blog-line-enter {
+  animation: blog-line-enter 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+  transform-origin: left;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .page-enter {
+  .page-enter,
+  .blog-heading-enter,
+  .blog-card-enter,
+  .blog-line-enter {
     animation: none !important;
   }
 }
@@ -177,4 +263,63 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* ─── Signal design system ─────────────────────────────────────────────────── */
+
+.sig-grid-bg {
+  background-image:
+    linear-gradient(color-mix(in oklab, var(--color-border) 40%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklab, var(--color-border) 40%, transparent) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.sig-glow-card {
+  position: relative;
+  overflow: hidden;
+}
+.sig-glow-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    color-mix(in oklab, var(--color-foreground) 3%, transparent),
+    transparent 60%
+  );
+  opacity: 0;
+  transition: opacity 0.4s;
+  pointer-events: none;
+  z-index: 0;
+}
+.sig-glow-card:hover::before {
+  opacity: 1;
+}
+.sig-glow-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.mono-hero-line {
+  animation: mono-line-grow 1.2s cubic-bezier(0.16,1,0.3,1) 0.3s both;
+}
+@keyframes mono-line-grow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.sig-pulse {
+  animation: sig-pulse-ring 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+@keyframes sig-pulse-ring {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0; transform: scale(2.2); }
+}
+
+.sig-metric-line {
+  animation: sig-line-fill 1.2s cubic-bezier(0.16,1,0.3,1) both;
+}
+@keyframes sig-line-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
 }

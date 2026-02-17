@@ -5,6 +5,7 @@ import { Prose } from "@/components/prose";
 import { MDXComponents } from "@/components/mdx-components";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
+import { Link } from "next-view-transitions";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
 const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME;
@@ -91,33 +92,61 @@ export default async function BlogPostPage({
   const { meta, content } = post;
 
   return (
-    <>
+    <div className="min-h-dvh">
       <Header />
-      <main className="mt-5 relative min-h-screen">
-        <article className="space-y-6 w-full">
-          <div className="space-y-3">
+
+      <main className="mt-10 mb-20">
+        {/* Back link — morphs from blog heading */}
+        <div style={{ viewTransitionName: "blog-heading" }}>
+          <Link
+            href="/blog"
+            className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <span>←</span>
+            <span className="font-mono">Back to blog</span>
+          </Link>
+        </div>
+
+        <article className="mt-8">
+          {/* Article header — elements match blog list for morphing */}
+          <div className="mb-10">
             <h1
-              className="text-3xl font-semibold leading-tight tracking-tight md:text-4xl"
+              className="text-3xl md:text-4xl font-semibold leading-tight tracking-tighter text-foreground"
               style={{ viewTransitionName: `post-title-${meta.slug}` }}
             >
               {meta.title}
             </h1>
 
-            <div className="space-y-4">
-              {meta.excerpt && (
-                <p className="text-muted-foreground">{meta.excerpt}</p>
-              )}
-              <div className="text-xs text-muted-foreground">
+            {meta.excerpt && (
+              <p
+                className="mt-4 text-muted-foreground leading-relaxed"
+                style={{ viewTransitionName: `post-excerpt-${meta.slug}` }}
+              >
+                {meta.excerpt}
+              </p>
+            )}
+
+            <div
+              className="mt-4 flex items-center gap-3"
+              style={{ viewTransitionName: `post-meta-${meta.slug}` }}
+            >
+              <time className="font-mono text-[10px] text-muted-foreground/60 uppercase tracking-wider">
                 {new Date(meta.date).toLocaleDateString(undefined, {
                   year: "numeric",
                   month: "short",
                   day: "numeric",
-                })}{" "}
-                • {meta.readingTime}
-              </div>
+                })}
+              </time>
+              <span className="inline-block h-1 w-1 rounded-full bg-muted-foreground/30" />
+              <span className="font-mono text-[10px] text-muted-foreground/60 tracking-wider">
+                {meta.readingTime}
+              </span>
             </div>
+
+            <div className="blog-line-enter mt-6 h-px bg-border" />
           </div>
 
+          {/* Article body */}
           <div className="page-enter">
             <Prose>
               <MDXRemote source={content} components={MDXComponents} />
@@ -125,7 +154,8 @@ export default async function BlogPostPage({
           </div>
         </article>
       </main>
+
       <Footer />
-    </>
+    </div>
   );
 }

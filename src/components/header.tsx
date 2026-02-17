@@ -1,8 +1,6 @@
 "use client";
 import { Link } from "next-view-transitions";
 import ThemeToggle from "@/components/theme-toggle";
-import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useMemo } from "react";
 import { usePathname } from "next/navigation";
 
@@ -13,58 +11,50 @@ export default function Header() {
       { label: "Home", href: "/" },
       { label: "Blog", href: "/blog" },
     ],
-    []
+    [],
   );
 
   return (
     <header className="w-full">
-      <div className="flex items-center justify-between py-6">
+      <div className="flex items-center justify-between py-5">
         <Link
           href="/"
-          className="group inline-flex items-center font-medium text-foreground"
+          className="inline-flex items-center gap-2 text-foreground hover:opacity-80 transition-opacity"
+          style={{ viewTransitionName: "header-logo" }}
         >
-          <Avatar className="border border-foreground">
-            <AvatarImage
-              src="/android-chrome-192x192.png"
-              alt="Brayden Blackwell Logo"
-            />
-            <AvatarFallback>BB</AvatarFallback>
-          </Avatar>
-          <span className="ml-2 tracking-tight">@Fats403</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="https://avatars.githubusercontent.com/u/30492327?s=400&u=57a6f5993e37d3de5b0a53a687235d970c8aaef5&v=4"
+            alt="Brayden Blackwell"
+            className="h-7 w-7 rounded-full border border-border object-cover"
+          />
+          <span className="text-[13px] font-mono text-muted-foreground">
+            @Fats403
+          </span>
         </Link>
-        <div className="flex items-center gap-4">
-          <nav className="text-sm text-muted-foreground">
-            <div className="relative">
-              <ul className="flex items-center gap-5 pb-2">
-                {navItems.map(({ label, href }) => {
-                  const isActive =
-                    href === "/"
-                      ? pathname === href
-                      : pathname.startsWith(href);
-                  return (
-                    <li key={label} className="relative">
-                      <Link
-                        className="hover:text-foreground transition-colors"
-                        href={href}
-                      >
-                        <span className="relative">{label}</span>
-                      </Link>
-                      {isActive && (
-                        <span
-                          style={{ viewTransitionName: "nav-underline" }}
-                          className="pointer-events-none absolute -bottom-2 left-0 right-0 h-[2px] bg-foreground"
-                        />
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
+        <div
+          className="flex items-center gap-5"
+          style={{ viewTransitionName: "header-nav" }}
+        >
+          <nav className="flex items-center gap-4 text-[13px] text-muted-foreground">
+            {navItems.map(({ label, href }) => {
+              const isActive =
+                href === "/" ? pathname === href : pathname.startsWith(href);
+              return (
+                <Link
+                  key={label}
+                  href={href}
+                  className={`transition-colors ${isActive ? "text-foreground" : "hover:text-foreground"}`}
+                >
+                  {label}
+                </Link>
+              );
+            })}
           </nav>
           <ThemeToggle />
         </div>
       </div>
-      <Separator />
+      <div className="h-px bg-border" />
     </header>
   );
 }

@@ -2,6 +2,7 @@ import { getAllPosts } from "@/lib/mdx";
 import { Link } from "next-view-transitions";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
+import { GlowCard } from "@/components/glow-card";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
 const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || "Blog";
@@ -61,66 +62,92 @@ export default function BlogIndexPage() {
   const posts = getAllPosts();
 
   return (
-    <div className="flex flex-col min-h-[calc(100dvh-4rem)] md:min-h-[calc(100dvh-6rem)]">
+    <div className="min-h-dvh">
       <Header />
-      <main
-        className="mt-5 relative flex-1"
-        style={{
-          viewTransitionName: "page",
-        }}
-      >
-        <div className="w-full">
-          <section className="space-y-6">
-            <div className="flex items-end justify-between">
-              <h1 className="text-xl font-semibold">Blog Posts</h1>
-              <div className="text-[11px] text-muted-foreground">
-                {posts.length} post{posts.length !== 1 ? "s" : ""}
-              </div>
-            </div>
 
-            <ul className="divide-y divide-border/60">
-              {posts.map(({ meta }) => (
-                <li key={meta.slug}>
-                  <Link
-                    href={`/blog/${meta.slug}`}
-                    className="group block px-4 py-3 rounded-md border border-border/60 transition-colors bg-secondary/40 hover:bg-background"
-                  >
-                    <div className="flex items-start gap-4">
-                      <time className="w-[5.5rem] shrink-0 text-[11px] text-muted-foreground tabular-nums">
-                        {new Date(meta.date).toLocaleDateString(undefined, {
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </time>
-                      <div className="flex-1">
-                        <h2
-                          className="font-medium tracking-tight group-hover:opacity-90"
+      <main className="mt-10 mb-20">
+        {/* Section heading — staggered entry */}
+        <div
+          className="flex items-center justify-between mb-4 blog-heading-enter"
+          style={{ viewTransitionName: "blog-heading" }}
+        >
+          <div className="flex items-center gap-3">
+            <span className="inline-block h-3 w-0.5 bg-foreground rounded-full" />
+            <h1 className="text-sm font-semibold text-foreground tracking-tight">
+              Blog
+            </h1>
+          </div>
+          <span className="font-mono text-[10px] text-muted-foreground/50 uppercase tracking-wider">
+            {posts.length} post{posts.length !== 1 ? "s" : ""}
+          </span>
+        </div>
+
+        {/* Animated divider */}
+        <div className="blog-line-enter h-px bg-border mb-8" />
+
+        {/* Post list — staggered card entries */}
+        <div className="space-y-3">
+          {posts.map(({ meta }, i) => (
+            <div
+              key={meta.slug}
+              className="blog-card-enter"
+              style={{ animationDelay: `${i * 80 + 150}ms` }}
+            >
+              <GlowCard className="group">
+                <Link
+                  href={`/blog/${meta.slug}`}
+                  className="block"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <h2
+                        className="font-semibold text-foreground tracking-tight text-[15px] group-hover:opacity-90 transition-opacity"
+                        style={{
+                          viewTransitionName: `post-title-${meta.slug}`,
+                        }}
+                      >
+                        {meta.title}
+                      </h2>
+                      {meta.excerpt && (
+                        <p
+                          className="mt-2 text-[13px] text-muted-foreground leading-relaxed line-clamp-2"
                           style={{
-                            viewTransitionName: `post-title-${meta.slug}`,
+                            viewTransitionName: `post-excerpt-${meta.slug}`,
                           }}
                         >
-                          {meta.title}
-                        </h2>
-                        {meta.excerpt && (
-                          <p className="mt-1 text-sm text-muted-foreground">
-                            {meta.excerpt}
-                          </p>
-                        )}
-                        <div className="mt-2 text-[11px] text-muted-foreground">
+                          {meta.excerpt}
+                        </p>
+                      )}
+                      <div
+                        className="mt-3 flex items-center gap-3"
+                        style={{
+                          viewTransitionName: `post-meta-${meta.slug}`,
+                        }}
+                      >
+                        <time className="font-mono text-[10px] text-muted-foreground/60 uppercase tracking-wider">
+                          {new Date(meta.date).toLocaleDateString(undefined, {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </time>
+                        <span className="inline-block h-1 w-1 rounded-full bg-muted-foreground/30" />
+                        <span className="font-mono text-[10px] text-muted-foreground/60 tracking-wider">
                           {meta.readingTime}
-                        </div>
+                        </span>
                       </div>
-                      <span className="shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
-                        ↗
-                      </span>
                     </div>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
+                    <span className="shrink-0 text-muted-foreground/30 group-hover:text-muted-foreground/70 transition-colors text-sm mt-1">
+                      ↗
+                    </span>
+                  </div>
+                </Link>
+              </GlowCard>
+            </div>
+          ))}
         </div>
       </main>
+
       <Footer />
     </div>
   );
