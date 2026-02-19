@@ -6,20 +6,20 @@ import { useEffect, useState, useRef, type ReactNode } from "react";
 
 const experience = [
   {
-    role: "Senior Software Engineer",
+    role: "Senior Software Engineer (Contract)",
     company: "Yana Motion Labs",
     period: "2023 — Present",
     location: "Calgary, AB",
     description:
-      "Rebuilt the website from scratch with a modern, accessible, performance-first stack using React. Implemented HIPAA-compliant AI pipelines and internal tooling, and led a technical SEO initiative that pushed 5+ target keywords onto the first page of search results.",
+      "Rebuilt the website end-to-end with a modern, accessible, performance-first stack. Designed and deployed AI pipelines to surface biomechanical insights from user data, and built internal tooling to operationalize models within clinician workflows under HIPAA-aligned governance — RBAC, encryption, audit logs, and PHI segregation. Led a technical SEO program that drove organic growth across 5+ target keywords.",
   },
   {
-    role: "Senior Software Engineer",
+    role: "Senior Software Engineer (Contract)",
     company: "Enviros",
     period: "06/2024 — 04/2025",
     location: "Calgary, AB",
     description:
-      "Built a secure platform handling sensitive children's data, where every feature required rigorous security review and strict compliance standards. Architected multi-tenant MySQL/Drizzle with granular RBAC, full audit trails, and encryption at rest. Developed CANS-aligned assessment interfaces with analytics dashboards that cut completion times by roughly 45%.",
+      "Architected a secure platform handling sensitive children's data — multi-tenant MySQL/Drizzle with granular RBAC, encryption at rest, and full audit trails for HIPAA-aligned compliance. Translated complex clinical requirements into intuitive CANS-aligned interfaces with analytics dashboards for outcomes and trends. Reduced assessment completion time by 45% and cut reporting from 3+ hours to under 90 minutes through workflow automation and UX improvements. Delivered with TDD and zero post-handoff bugs.",
   },
   {
     role: "Senior Software Engineer",
@@ -27,15 +27,15 @@ const experience = [
     period: "02/2021 — 07/2025",
     location: "Calgary, AB",
     description:
-      "Owned the full product lifecycle for critical GIS applications, from planning through delivery. Modernized legacy .NET/C# and React systems, built IoT device integrations from firmware to server to UI, and migrated payments from PayPal to Stripe. Mentored junior developers and introduced CI/CD pipelines across the microservices stack.",
+      "Engineered the core GIS software interface — designed to handle hundreds of thousands of concurrent requests at 99%+ uptime, still running stable in production. Built end-to-end IoT integrations from device firmware through server to UI. Modernized legacy .NET/C# and React codebases, migrated payments from PayPal to Stripe, mentored junior developers, and introduced CI/CD pipelines that reduced change lead time by 35%.",
   },
   {
-    role: "Junior Backend Developer",
+    role: "Backend Developer",
     company: "OnGuard",
     period: "06/2016 — 07/2020",
     location: "Calgary, AB",
     description:
-      "Built and maintained Node.js and C# REST APIs and microservices with CI/CD and monitoring. Integrated third-party services to automate and scale data workflows across the platform.",
+      "Designed and maintained Node.js REST APIs and microservices with automated deployments and robust observability. Collaborated cross-functionally to integrate third-party services and scale data processing workflows. Reduced API P95 latency by 20% through caching strategies, query optimization, and async job queues.",
   },
 ];
 
@@ -108,10 +108,14 @@ const skillGroups = [
     label: "Security",
     items: ["JWT", "OAuth", "RBAC", "HIPAA"],
   },
+  {
+    label: "Game Dev",
+    items: ["Unity", "C#", "Game Design", "Physics Systems"],
+  },
 ];
 
 const metrics = [
-  { value: "10+", label: "Years Deep" },
+  { value: "17+", label: "Years Deep" },
   { value: "∞", label: "Tabs Open" },
   { value: "24/7", label: "Locked In" },
   { value: "0", label: "Regrets" },
@@ -361,7 +365,7 @@ export default function HomeContent() {
             View Projects
           </a>
           <a
-            href="/resume.pdf"
+            href="/brayden-resume.pdf"
             target="_blank"
             rel="noopener noreferrer"
             download
@@ -378,18 +382,19 @@ export default function HomeContent() {
           <SectionBar label="About" />
           <div className="mt-6 space-y-4 text-muted-foreground leading-[1.7]">
             <p>
-              I&apos;ve been writing code since I was thirteen. Started with
-              Flash games, moved on to real jobs, and somehow never picked up a
-              backup career. Pretty much all I do is code. I say that like
-              it&apos;s a joke but it&apos;s really just the truth.
+              I&apos;ve been writing code since I was thirteen — 17 years of it.
+              Started with Flash games, picked up C# through Unity, moved on to
+              real jobs, and somehow never picked up a backup career. Pretty
+              much all I do is code. I say that like it&apos;s a joke but
+              it&apos;s really just the truth.
             </p>
             <p>
-              Once I start on something it kind of takes over.. I get locked in
+              Once I start on something it kind of takes over. I get locked in
               on the details until every edge case is handled and the whole
               thing feels right. I like systems that make sense, UIs that stay
               out of the way, and shipping things that actually work. When
               I&apos;m not building products I&apos;m usually building tools to
-              help me build products faster.
+              help me build products faster — or games.
             </p>
           </div>
         </Reveal>
