@@ -32,7 +32,7 @@ const experience = [
   {
     role: "Backend Developer",
     company: "OnGuard",
-    period: "06/2016 — 07/2020",
+    period: "06/2016 — 01/2021",
     location: "Calgary, AB",
     description:
       "Designed and maintained Node.js REST APIs and microservices with automated deployments and robust observability. Collaborated cross-functionally to integrate third-party services and scale data processing workflows. Reduced API P95 latency by 20% through caching strategies, query optimization, and async job queues.",
